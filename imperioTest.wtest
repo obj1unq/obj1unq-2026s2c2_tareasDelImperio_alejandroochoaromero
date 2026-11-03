@@ -2,10 +2,85 @@ import imperio.*
 import habitantes.*
 
 describe "Imperio Inca" {
- 
-  test "Tareas de siembra" {
-  }
+  
+	// Tareas
+	const siembraPapa = new SiembraEnValle(esfuerzo = 1.2)
+	const siembraMaizTerrazas = new SiembraEnTerrazas(esfuerzo = 1.5)
+	const rutaTamboCentral = new Mensaje()
+	const caminoSapaInca = new MensajeImperial()
+
+	// Habitantes
+	const cusi = new Campesino(energia = 100, tiempoDeTrabajo = 4)
+	const tupac = new Elite(energia = 200)
+
+	// Ayllus y Colcas
+	const colcaAgricola = new Colca(tareas = #{siembraPapa, siembraMaizTerrazas})
+	const colcaCentral = new Colca(tareas = #{rutaTamboCentral, caminoSapaInca})
+	const aylluReal = new Ayllu(colcas = #{colcaAgricola, colcaCentral})
 
 
+  test "1.1 Siembra de papa en época seca" {
+    siembraPapa.epoca(epocaSeca)
+		assert.equals(180, siembraPapa.recursosProducidos(4))
+		assert.equals(420, siembraPapa.recursosProducidos(10))
+	}
 
+    test "1.2 Siembra de papa en época de lluvias" {
+		siembraPapa.epoca(epocaDeLluvia)
+		assert.equals(0, siembraPapa.recursosProducidos(4))
+	}
+
+	test "1.3 Siembra de maíz en terrazas" {
+		assert.equals(900, siembraMaizTerrazas.recursosProducidos(5))
+		assert.equals(1125, siembraMaizTerrazas.recursosProducidos(7))
+	}
+
+	test "1.4 Mensaje comun Ruta Tambo Central" {
+		assert.equals(210, rutaTamboCentral.recursosProducidos(4))
+		assert.equals(525, rutaTamboCentral.recursosProducidos(10))
+	}
+
+	test "1.5 Mensaje imperial Camino del Sapa Inca" {
+		assert.equals(270, caminoSapaInca.recursosProducidos(4))
+		assert.equals(810, caminoSapaInca.recursosProducidos(10))
+	}
+
+	test "2.1 Cusi realiza tareas" {
+		cusi.realizarTarea(siembraPapa)
+		assert.equals(82, cusi.energia())
+
+		cusi.energia(100)
+		cusi.realizarTarea(rutaTamboCentral)
+		assert.equals(79, cusi.energia())
+	}
+
+	test "2.2 Cusi no realiza tareas si su energía actual no es suficiente" {
+		cusi.energia(15)
+		cusi.realizarTarea(siembraPapa)
+		assert.equals(15, cusi.energia())
+	}
+
+	test "2.3 Túpac realiza tareas" {
+		tupac.realizarTarea(siembraMaizTerrazas)
+		assert.equals(111.25, tupac.energia())
+
+		tupac.energia(200)
+		tupac.realizarTarea(caminoSapaInca)
+		assert.equals(137.5, tupac.energia())
+	}
+
+	test "3.1 La mejor Colca del Ayllu Real para Túpac y Cusi es la Agrícola" {
+		assert.equals(colcaAgricola, aylluReal.mejorColca(tupac))
+		assert.equals(colcaAgricola, aylluReal.mejorColca(cusi))
+	}
+
+	test "3.2 Colcas suaves del Ayllu Real" {
+		assert.equals(#{}, aylluReal.colcasSuaves(tupac))
+		assert.equals(#{colcaAgricola}, aylluReal.colcasSuaves(cusi))
+	}
+
+	test "3.3 Tareas más exigentes del Ayllu Real" {
+		assert.equals(#{siembraMaizTerrazas, caminoSapaInca}, aylluReal.tareasMasExigentes(tupac))
+		assert.equals(#{siembraMaizTerrazas, caminoSapaInca}, aylluReal.tareasMasExigentes(cusi))
+	}
 }
